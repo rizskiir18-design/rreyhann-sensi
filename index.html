@@ -12,16 +12,23 @@ body {
   background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
   color:white;
   text-align:center;
+  transition: 0.5s;
 }
 
 /* CONTAINER */
 .box {
   background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(25px);
   border-radius: 20px;
-  padding: 20px;
+  padding: 25px;
   margin: 20px;
-  box-shadow: 0 0 20px rgba(0,0,0,0.5);
+  box-shadow: 0 0 30px rgba(0,0,0,0.6);
+  animation: fade 0.6s ease;
+}
+
+@keyframes fade {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
 }
 
 /* INPUT */
@@ -49,6 +56,7 @@ button {
 
 button:hover {
   transform: scale(1.05);
+  box-shadow: 0 0 15px cyan;
 }
 
 /* RESULT */
@@ -57,6 +65,13 @@ button:hover {
   padding: 15px;
   background: #111;
   border-radius: 10px;
+  animation: fade 0.5s;
+}
+
+/* LOADING */
+#loading {
+  display:none;
+  margin-top:10px;
 }
 
 /* HISTORY */
@@ -91,7 +106,8 @@ button:hover {
 
 <body>
 
-<h1>🔥 Rreyhann Sensi PRO 🔥</h1>
+<h1>🔥 Rreyhann Sensi PRO</h1>
+<p style="opacity:0.7">AI Sensitivity Generator • Realtime Leaderboard</p>
 
 <div class="box">
 
@@ -102,6 +118,8 @@ button:hover {
 <button onclick="god()">👑 GOD MODE</button>
 <button onclick="copy()">📋 Copy</button>
 
+<div id="loading">⚡ Generating...</div>
+
 <div class="result" id="output">Klik tombol untuk mulai...</div>
 
 <div class="history" id="history"></div>
@@ -111,13 +129,15 @@ button:hover {
 
 <div class="toast" id="toast"></div>
 
+<audio id="clickSound" src="https://www.soundjay.com/button/beep-07.wav"></audio>
+
 <script>
 
-// 🔥 CONFIG FIREBASE
+// 🔥 FIREBASE (SUDAH FIX)
 const firebaseConfig = {
   apiKey: "AIzaSyA-NBT4efmBVnXSARF4kNQ7FB_uYn12qvY",
   authDomain: "sensi-rreyhann.firebaseapp.com",
-  databaseURL: "https://sensi-rreyhann-default-rtdb.firebaseio.com/",
+  databaseURL: "https://sensi-rreyhann-default-rtdb.firebasedatabase.app",
   projectId: "sensi-rreyhann",
   storageBucket: "sensi-rreyhann.firebasestorage.app",
   messagingSenderId: "145452605443",
@@ -136,6 +156,11 @@ function r(min,max){
  return Math.floor(Math.random()*(max-min+1))+min;
 }
 
+// SOUND
+function sound(){
+ document.getElementById("clickSound").play();
+}
+
 // NOTIF
 function toast(msg){
  let t=document.getElementById("toast");
@@ -144,74 +169,75 @@ function toast(msg){
  setTimeout(()=>t.style.display="none",2000);
 }
 
-// GENERATE NORMAL
+// LOADING
+function showLoad(){
+ document.getElementById("loading").style.display="block";
+}
+function hideLoad(){
+ document.getElementById("loading").style.display="none";
+}
+
+// GENERATE
 function generate(){
- let user = document.getElementById("username").value;
+ sound();
+ let user=document.getElementById("username").value;
  if(!user) return toast("Isi nama dulu!");
 
- let s={
-  g:r(80,100),
-  r:r(70,100),
-  s2:r(60,90),
-  s4:r(50,80),
-  sn:r(40,70),
-  f:r(50,80)
- };
+ showLoad();
 
+ setTimeout(()=>{
+ let s={g:r(80,100),r:r(70,100),s2:r(60,90),s4:r(50,80),sn:r(40,70),f:r(50,80)};
  show(user,s,"NORMAL");
  save(user,s,"normal");
+ hideLoad();
+ },800);
 }
 
 // SULTAN
 function sultan(){
- let user = document.getElementById("username").value;
+ sound();
+ let user=document.getElementById("username").value;
  if(!user) return toast("Isi nama!");
 
- let s={
-  g:r(95,100),
-  r:r(90,100),
-  s2:r(85,100),
-  s4:r(80,100),
-  sn:r(75,95),
-  f:r(85,100)
- };
+ showLoad();
 
- show(user,s,"SULTAN");
+ setTimeout(()=>{
+ let s={g:r(95,100),r:r(90,100),s2:r(85,100),s4:r(80,100),sn:r(75,95),f:r(85,100)};
+ show(user,s,"SULTAN 🔥");
  save(user,s,"sultan");
+ hideLoad();
+ },800);
 }
 
 // GOD MODE
 function god(){
- let user = document.getElementById("username").value;
+ sound();
+ let user=document.getElementById("username").value;
  if(!user) return toast("Isi nama!");
 
- let s={
-  g:100,
-  r:100,
-  s2:100,
-  s4:100,
-  sn:95,
-  f:100
- };
+ let s={g:100,r:100,s2:100,s4:100,sn:100,f:100};
 
- show(user,s,"GOD 👑");
+ document.body.style.background="linear-gradient(135deg,gold,orange,red)";
+
+ show(user,s,"👑 GOD MODE");
  save(user,s,"god");
 }
 
-// TAMPIL
+// SHOW
 function show(user,s,mode){
- last = `${user} | ${mode} | ${s.g}`;
+ last=`
+👤 ${user}
+Mode: ${mode}
 
- document.getElementById("output").innerHTML=`
- <b>${mode}</b><br><br>
- 👤 ${user}<br>
- 🎯 ${s.g}<br>
- 🔴 ${s.r}<br>
- 🔍 ${s.s2}<br>
- 🔭 ${s.s4}<br>
- 🎯 ${s.sn}<br>
- 👁 ${s.f}
- `;
+🎯 ${s.g}
+🔴 ${s.r}
+🔍 ${s.s2}
+🔭 ${s.s4}
+🎯 ${s.sn}
+👁 ${s.f}
+`;
+
+ document.getElementById("output").innerHTML=last.replace(/\n/g,"<br>");
 
  history.push(last);
  localStorage.setItem("his",JSON.stringify(history));
@@ -228,7 +254,7 @@ function copy(){
 // HISTORY
 function renderHistory(){
  let h=document.getElementById("history");
- h.innerHTML="<h3>History</h3>"+history.slice(-5).reverse().join("<br>");
+ h.innerHTML="<h3>📜 History</h3>"+history.slice(-5).reverse().join("<br><br>");
 }
 renderHistory();
 
@@ -241,19 +267,22 @@ function save(user,s,mode){
  });
 }
 
-// LEADERBOARD
+// LEADERBOARD PRO
 function load(){
  db.ref("sensi")
  .orderByChild("score")
  .limitToLast(5)
  .on("value",snap=>{
+
   let data=[];
   snap.forEach(c=>data.push(c.val()));
   data.reverse();
 
   let html="<h3>🏆 Top Player</h3>";
+
   data.forEach((d,i)=>{
-   html+=`#${i+1} ${d.user} (${d.score})<br>`;
+   let medal=["👑","🥈","🥉"][i] || "🎮";
+   html+=`${medal} ${d.user} (${d.score})<br>`;
   });
 
   document.getElementById("leaderboard").innerHTML=html;
@@ -262,6 +291,10 @@ function load(){
 load();
 
 </script>
+
+<p style="opacity:0.5;margin-top:30px;">
+© 2026 Rreyhann Sensi • Powered by Firebase
+</p>
 
 </body>
 </html>
