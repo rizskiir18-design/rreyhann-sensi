@@ -2,88 +2,108 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rreyhann Sensi Generator</title>
+<title>🔥 Rreyhann Sensi 🔥</title>
 
 <style>
 body {
-  font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  font-family: sans-serif;
   color: white;
   text-align: center;
-  padding: 20px;
-  margin: 0;
-}
-
-h1 {
-  text-shadow: 0 0 20px #00f7ff;
 }
 
 .box {
   background: rgba(255,255,255,0.05);
-  border-radius: 25px;
-  padding: 25px;
-  margin-top: 20px;
   backdrop-filter: blur(15px);
-  box-shadow: 0 0 40px rgba(0,255,255,0.3);
-  max-width: 400px;
-  margin-left: auto;
-  margin-right: auto;
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px;
 }
 
 button {
-  width: 100%;
-  margin-top: 10px;
+  width: 90%;
+  margin: 10px;
   padding: 15px;
   border-radius: 15px;
-  font-size: 16px;
   border: none;
-  cursor: pointer;
-  background: linear-gradient(45deg, #00f7ff, #00c3ff);
-  font-weight: bold;
-  transition: 0.2s;
+  background: linear-gradient(45deg, cyan, blue);
+  color: white;
 }
 
-button:active {
-  transform: scale(0.95);
+input {
+  width: 85%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
 }
 
 .result {
   margin-top: 20px;
-  font-size: 16px;
-  background: rgba(0,0,0,0.3);
   padding: 15px;
-  border-radius: 15px;
+  background: #1e1e1e;
+  border-radius: 10px;
+}
+
+.leaderboard {
+  margin-top: 20px;
+  text-align: left;
 }
 </style>
+
+<!-- ✅ FIREBASE (VERSI STABIL) -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
 </head>
 <body>
 
 <h1>🔥 Rreyhann Sensi 🔥</h1>
-<p>Auto Headshot Generator</p>
 
 <div class="box">
 
-<button onclick="generateSensi()">⚡ Generate Sensi</button>
-<button onclick="copySensi()">📋 Copy Sensi</button>
-<button onclick="proMode()">🔥 Mode Sultan</button>
+<input type="text" id="username" placeholder="Nama kamu..." />
 
-<div class="result" id="output">
-Klik tombol untuk generate...
-</div>
+<button onclick="generateSensi()">⚡ Generate</button>
+<button onclick="proMode()">🔥 Sultan Mode</button>
+<button onclick="copySensi()">📋 Copy</button>
+<button onclick="showHistory()">📜 History</button>
+<button onclick="clearHistory()">🗑 Clear</button>
+<button onclick="loadLeaderboard()">🏆 Leaderboard</button>
+
+<div class="result" id="output">Klik tombol...</div>
+<div class="leaderboard" id="leaderboard"></div>
 
 </div>
 
 <script>
 
+// 🔥 CONFIG KAMU (SUDAH FIX)
+const firebaseConfig = {
+  apiKey: "AIzaSyA-NBT4efmBVnXSARF4kNQ7FB_uYn12qvY",
+  authDomain: "sensi-rreyhann.firebaseapp.com",
+  databaseURL: "https://sensi-rreyhann-default-rtdb.firebaseio.com",
+  projectId: "sensi-rreyhann",
+  storageBucket: "sensi-rreyhann.firebasestorage.app",
+  messagingSenderId: "145452605443",
+  appId: "1:145452605443:web:e53f71e4c197291b2c2e36"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// SYSTEM
 let lastSensi = "";
+let historySensi = JSON.parse(localStorage.getItem("history")) || [];
 
 function random(min, max) {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+// GENERATE
 function generateSensi() {
+  const user = document.getElementById("username").value || "Player";
+
   const sensi = {
     general: random(80, 100),
     redDot: random(70, 100),
@@ -93,70 +113,96 @@ function generateSensi() {
     freeLook: random(50, 80)
   };
 
-  lastSensi = `
-General: ${sensi.general}
-Red Dot: ${sensi.redDot}
-2x Scope: ${sensi.scope2x}
-4x Scope: ${sensi.scope4x}
-Sniper: ${sensi.sniper}
-Free Look: ${sensi.freeLook}
-`;
-
-  document.getElementById("output").innerHTML = `
-  <b>🎯 General:</b> ${sensi.general} <br>
-  <b>🔴 Red Dot:</b> ${sensi.redDot} <br>
-  <b>🔍 2x Scope:</b> ${sensi.scope2x} <br>
-  <b>🔭 4x Scope:</b> ${sensi.scope4x} <br>
-  <b>🎯 Sniper:</b> ${sensi.sniper} <br>
-  <b>👁 Free Look:</b> ${sensi.freeLook}
-  `;
+  saveData(user, sensi, "normal");
+  showResult(user, sensi);
 }
 
-function copySensi() {
-  if (!lastSensi) {
-    alert("Generate dulu sensinya!");
-    return;
-  }
-
-  const textArea = document.createElement("textarea");
-  textArea.value = lastSensi;
-  document.body.appendChild(textArea);
-  textArea.select();
-  document.execCommand("copy");
-  document.body.removeChild(textArea);
-
-  alert("✅ Sensi berhasil di-copy!");
-}
-
+// SULTAN MODE
 function proMode() {
+  const user = document.getElementById("username").value || "Sultan";
+
   const sensi = {
-    general: 100,
-    redDot: 95,
-    scope2x: 85,
-    scope4x: 75,
-    sniper: 65,
-    freeLook: 80
+    general: random(95, 100),
+    redDot: random(90, 100),
+    scope2x: random(85, 100),
+    scope4x: random(80, 100),
+    sniper: random(75, 95),
+    freeLook: random(85, 100)
   };
 
-  lastSensi = `
-(PRO MODE)
-General: ${sensi.general}
-Red Dot: ${sensi.redDot}
-2x Scope: ${sensi.scope2x}
-4x Scope: ${sensi.scope4x}
-Sniper: ${sensi.sniper}
-Free Look: ${sensi.freeLook}
-`;
+  saveData(user, sensi, "sultan");
+  showResult(user, sensi, true);
+}
 
+// SAVE DATA
+function saveData(user, sensi, mode) {
+  lastSensi = `${user} | ${mode} | ${sensi.general}`;
+
+  historySensi.push(lastSensi);
+  localStorage.setItem("history", JSON.stringify(historySensi));
+
+  db.ref("sensi").push({
+    user,
+    ...sensi,
+    mode,
+    score: sensi.general,
+    time: Date.now()
+  });
+}
+
+// SHOW RESULT
+function showResult(user, sensi, sultan=false) {
   document.getElementById("output").innerHTML = `
-  🔥 <b>MODE SULTAN AKTIF</b> 🔥 <br><br>
-  <b>🎯 General:</b> ${sensi.general} <br>
-  <b>🔴 Red Dot:</b> ${sensi.redDot} <br>
-  <b>🔍 2x Scope:</b> ${sensi.scope2x} <br>
-  <b>🔭 4x Scope:</b> ${sensi.scope4x} <br>
-  <b>🎯 Sniper:</b> ${sensi.sniper} <br>
-  <b>👁 Free Look:</b> ${sensi.freeLook}
+  <b style="color:${sultan ? 'gold':'white'};">
+  ${sultan ? '🔥 SULTAN 🔥':''}</b><br>
+  👤 ${user}<br><br>
+  🎯 ${sensi.general}<br>
+  🔴 ${sensi.redDot}<br>
+  🔍 ${sensi.scope2x}<br>
+  🔭 ${sensi.scope4x}<br>
+  🎯 ${sensi.sniper}<br>
+  👁 ${sensi.freeLook}
   `;
+}
+
+// COPY
+function copySensi() {
+  if (!lastSensi) return alert("Generate dulu!");
+  navigator.clipboard.writeText(lastSensi);
+  alert("Copied!");
+}
+
+// HISTORY
+function showHistory() {
+  if (!historySensi.length) return alert("Kosong!");
+  alert(historySensi.join("\n"));
+}
+
+// CLEAR
+function clearHistory() {
+  localStorage.removeItem("history");
+  historySensi = [];
+  alert("Dihapus!");
+}
+
+// LEADERBOARD
+function loadLeaderboard() {
+  db.ref("sensi")
+    .orderByChild("score")
+    .limitToLast(5)
+    .once("value", snapshot => {
+
+      let data = [];
+      snapshot.forEach(child => data.push(child.val()));
+      data.reverse();
+
+      let html = "<h3>🏆 Top Player</h3>";
+      data.forEach((d, i) => {
+        html += `#${i+1} 👤 ${d.user} (${d.score})<br>`;
+      });
+
+      document.getElementById("leaderboard").innerHTML = html;
+    });
 }
 
 </script>
