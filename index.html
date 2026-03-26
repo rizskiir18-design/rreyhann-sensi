@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>🔥 Rreyhann Sensi 🔥</title>
+
+<style>
+body {
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  font-family: sans-serif;
+  color: white;
+  text-align: center;
+}
+
+.box {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(15px);
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px;
+}
+
+button {
+  width: 90%;
+  margin: 10px;
+  padding: 15px;
+  border-radius: 15px;
+  border: none;
+  background: linear-gradient(45deg, cyan, blue);
+  color: white;
+}
+
+input {
+  width: 85%;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+  margin-bottom: 10px;
+}
+
+.result {
+  margin-top: 20px;
+  padding: 15px;
+  background: #1e1e1e;
+  border-radius: 10px;
+}
+
+.leaderboard {
+  margin-top: 20px;
+  text-align: left;
+}
+</style>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+</head>
+<body>
+
+<h1>🔥 Rreyhann Sensi 🔥</h1>
+
+<div class="box">
+
+<input type="text" id="username" placeholder="Nama kamu..." />
+
+<button onclick="generateSensi()">⚡ Generate</button>
+<button onclick="proMode()">🔥 Sultan Mode</button>
+<button onclick="copySensi()">📋 Copy</button>
+<button onclick="loadLeaderboard()">🏆 Leaderboard</button>
+
+<div class="result" id="output">Klik tombol...</div>
+<div class="leaderboard" id="leaderboard"></div>
+
+</div>
+
+<script>
+
+// 🔥 CONFIG SUDAH BENAR
+const firebaseConfig = {
+  apiKey: "AIzaSyA-NBT4efmBVnXSARF4kNQ7FB_uYn12qvY",
+  authDomain: "sensi-rreyhann.firebaseapp.com",
+  databaseURL: "https://sensi-rreyhann-default-rtdb.firebasedatabase.app",
+  projectId: "sensi-rreyhann",
+  storageBucket: "sensi-rreyhann.firebasestorage.app",
+  messagingSenderId: "145452605443",
+  appId: "1:145452605443:web:e53f71e4c197291b2c2e36"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// SYSTEM
+let lastSensi = "";
+
+// RANDOM
+function random(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// GENERATE
+function generateSensi() {
+  const user = document.getElementById("username").value || "Player";
+
+  const sensi = {
+    general: random(80, 100),
+    redDot: random(70, 100),
+    scope2x: random(60, 90),
+    scope4x: random(50, 80),
+    sniper: random(40, 70),
+    freeLook: random(50, 80)
+  };
+
+  saveData(user, sensi, "Normal");
+  showResult(user, sensi);
+}
+
+// SULTAN MODE
+function proMode() {
+  const user = document.getElementById("username").value || "Sultan";
+
+  const sensi = {
+    general: random(95, 100),
+    redDot: random(90, 100),
+    scope2x: random(85, 100),
+    scope4x: random(80, 100),
+    sniper: random(75, 95),
+    freeLook: random(85, 100)
+  };
+
+  saveData(user, sensi, "Sultan");
+  showResult(user, sensi, true);
+}
+
+// SAVE KE FIREBASE
+function saveData(user, sensi, mode) {
+  lastSensi = `${user} | ${mode} | ${sensi.general}`;
+
+  db.ref("sensi").push({
+    user,
+    ...sensi,
+    mode,
+    score: sensi.general,
+    time: Date.now()
+  });
+}
+
+// TAMPILKAN
+function showResult(user, sensi, sultan=false) {
+  document.getElementById("output").innerHTML = `
+  <b style="color:${sultan ? 'gold':'white'};">
+  ${sultan ? '🔥 SULTAN 🔥':''}</b><br>
+  👤 ${user}<br><br>
+  🎯 ${sensi.general}<br>
+  🔴 ${sensi.redDot}<br>
+  🔍 ${sensi.scope2x}<br>
+  🔭 ${sensi.scope4x}<br>
+  🎯 ${sensi.sniper}<br>
+  👁 ${sensi.freeLook}
+  `;
+}
+
+// COPY
+function copySensi() {
+  if (!lastSensi) return alert("Generate dulu!");
+  navigator.clipboard.writeText(lastSensi);
+  alert("Berhasil di-copy!");
+}
+
+// LEADERBOARD REALTIME 🔥
+function loadLeaderboard() {
+  db.ref("sensi")
+    .orderByChild("score")
+    .limitToLast(5)
+    .on("value", snapshot => {
+
+      let data = [];
+      snapshot.forEach(child => data.push(child.val()));
+      data.reverse();
+
+      let html = "<h3>🏆 TOP PLAYER</h3>";
+      data.forEach((d, i) => {
+        html += `#${i+1} 👤 ${d.user} (${d.score})<br>`;
+      });
+
+      document.getElementById("leaderboard").innerHTML = html;
+    });
+}
+
+</script>
+
+</body>
+</html>
